@@ -1,63 +1,65 @@
-# Nuxt 3 Minimal Starter
+# Reactive Layouts
 
-Look at the [Nuxt 3 documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+This is a starter project that uses `@vueuse/core` to create dynamic layouts based on the user's screensize.
 
-## Setup
+## How exactly ?
+1. Create the various `layouts` in the `/layouts directory`. In our case, we have `desktop.vue` that represents the desktop layout, `tablet.vue` for tablet layout and `mobile.vue` for mobile layout.
 
-Make sure to install the dependencies:
+2. Use `useMediaQuery` to identify various breakpoints. The returned breakpoint are valid `ref<boolean>` that we can use to dynamicaly switch between the layout.
 
-```bash
-# npm
-npm install
+```typescript
+import { useMediaQuery} from '@vueuse/core';
 
-# pnpm
-pnpm install
+const layout = ref('')
 
-# yarn
-yarn install
+const isLargeScreen = useMediaQuery('(min-width: 1024px)');
+const isMediumScreen = useMediaQuery('(min-width: 768px)');
 ```
 
-## Development Server
+3. Use `watchEffect()` to track a change in either breakpoints. This is useful for a case where a user switches between desktop/tablet/mobile on the same browser window.
 
-Start the development server on `http://localhost:3000`:
-
-```bash
-# npm
-npm run dev
-
-# pnpm
-pnpm run dev
-
-# yarn
-yarn dev
+```typescript
+watchEffect(() => {
+  updateLayout(isMediumScreen.value, isLargeScreen.value);
+})
 ```
 
-## Production
+4. The actual layout switch
 
-Build the application for production:
-
-```bash
-# npm
-npm run build
-
-# pnpm
-pnpm run build
-
-# yarn
-yarn build
+```typescript
+const updateLayout = (mediumScreen?: boolean, largeSreen?: boolean) => {
+  switch (true) {
+    case mediumScreen && !largeSreen:
+      layout.value = 'tablet'
+      break;
+    case largeSreen:
+      layout.value = 'desktop';
+      break;
+    default:
+      layout.value = 'mobile'
+      break;
+  }
+}
 ```
 
-Locally preview production build:
+5. Bind the layout value to the `NuxtLayout`
 
-```bash
-# npm
-npm run preview
-
-# pnpm
-pnpm run preview
-
-# yarn
-yarn preview
+```html
+<template>
+  <NuxtLayout :name="layout">
+    <NuxtPage />
+  </NuxtLayout>
+</template>
 ```
 
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+
+## Running Locally
+
+After cloning/downloading the source files
+
+npm - `npm install`. Yarn - `yarn install`
+
+npm- `npm run dev -o`. Yarn - `yarn dev -o`
+
+Navigate to `http://localhost:3000/dashboard`
+
